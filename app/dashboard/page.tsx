@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { PortalEngine, IntakeItem } from '@/lib/engine';
+import { createClient } from '@/utils/supabase/client';
 import { Upload, Plus, CheckCircle, FileText, Loader2 } from 'lucide-react';
 
 export default function Dashboard() {
@@ -12,15 +13,22 @@ export default function Dashboard() {
   const [activeItemId, setActiveItemId] = useState<string | null>(null);
   const [portalName, setPortalName] = useState("Smith & Co LLC");
 
-  // Keep a reference to the static anonymous user ID for our demo
-  const DEMO_USER_ID = '00000000-0000-0000-0000-000000000000';
+  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    fetchChecklist();
+    const supabaseClient = createClient();
+    supabaseClient.auth.getUser().then(({ data: { user } }) => {
+      if (!user) {
+        window.location.href = '/login';
+        return;
+      }
+      setUser(user);
+      fetchChecklist(user.id);
+    });
   }, []);
 
-  const fetchChecklist = () => {
-    PortalEngine.getChecklist(DEMO_USER_ID).then(data => {
+  const fetchChecklist = (userId: string) => {
+    PortalEngine.getChecklist(userId).then(data => {
       setItems(data);
       setLoading(false);
     }).catch(err => {
@@ -49,7 +57,7 @@ export default function Dashboard() {
       // In a real app we'd upload to Supabase Storage and get a URL here
       const mockFileUrl = `https://storage.example.com/${file.name}`;
       
-      await PortalEngine.completeItem(DEMO_USER_ID, activeItemId, mockFileUrl);
+      await PortalEngine.completeItem(user.id, activeItemId, mockFileUrl);
       
       // Update local state to reflect completion
       setItems(prevItems => prevItems.map(item => 
@@ -89,13 +97,23 @@ export default function Dashboard() {
             <h1 className="text-3xl font-bold tracking-tight text-slate-900">Your Client Portals</h1>
             <p className="text-sm text-slate-500 mt-1">Manage intake checklists and files</p>
           </div>
-          <button 
-            onClick={handleNewPortal}
-            className="mt-4 sm:mt-0 flex items-center justify-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-blue-700 transition shadow-sm"
-          >
-            <Plus className="w-4 h-4" />
-            New Portal
-          </button>
+          <div className="mt-4 sm:mt-0 flex items-center justify-center gap-4">
+            <button 
+              onClick={handleNewPortal}
+              className="flex items-center justify-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-blue-700 transition shadow-sm"
+            >
+              <Plus className="w-4 h-4" />
+              New Portal
+            </button>
+            <form action="/dashboard/logout" method="post" className="m-0">
+              <button 
+                type="submit"
+                className="text-sm font-medium text-slate-500 hover:text-slate-800 transition-colors bg-slate-100 hover:bg-slate-200 px-4 py-2 rounded-lg"
+              >
+                Log out
+              </button>
+            </form>
+          </div>
         </header>
 
         <main>

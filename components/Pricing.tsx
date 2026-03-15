@@ -1,8 +1,13 @@
 import Link from 'next/link';
 
-export function Pricing() {
-  const starterLink = process.env.NEXT_PUBLIC_STRIPE_STARTER_LINK || '#';
-  const proLink = process.env.NEXT_PUBLIC_STRIPE_PRO_LINK || '#';
+export function Pricing({ userId }: { userId?: string }) {
+  let starterLink = process.env.NEXT_PUBLIC_STRIPE_STARTER_LINK || '#';
+  let proLink = process.env.NEXT_PUBLIC_STRIPE_PRO_LINK || '#';
+
+  if (userId) {
+    starterLink += `?client_reference_id=${userId}`;
+    proLink += `?client_reference_id=${userId}`;
+  }
 
   return (
     <section id="pricing" className="py-24 sm:py-32">
