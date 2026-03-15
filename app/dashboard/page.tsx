@@ -11,7 +11,7 @@ export default function Dashboard() {
   useEffect(() => {
     // In a real flow, we'd use Supabase Auth to get the user ID
     // Simulating user fetch for demo purposes
-    PortalEngine.getChecklist('anonymous-user-123').then(data => {
+    PortalEngine.getChecklist('00000000-0000-0000-0000-000000000000').then(data => {
       setItems(data);
       setLoading(false);
     }).catch(err => {
